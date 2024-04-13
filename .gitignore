@@ -1,0 +1,13 @@
+__pycache__/
+
+# Environments
+.env
+.venv
+env/
+venv/
+
+# Unit test / coverage reports
+.coverage
+
+# pyenv
+.python-version
