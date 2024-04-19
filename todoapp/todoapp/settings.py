@@ -44,6 +44,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
+    'rest_framework',
+    'rest_framework.authtoken',
+    
     'users',
     'todos',
     'projects',
@@ -94,6 +97,18 @@ DATABASES = {
         'HOST': os.environ.get('DB_HOST'),          # Set to empty string for localhost..
         'PORT': os.environ.get('DB_PORT'),          # Psql service running port.
     }
+}
+
+# Django Rest Framework
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 
 
