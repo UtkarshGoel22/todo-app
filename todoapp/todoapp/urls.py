@@ -19,6 +19,7 @@ from django.contrib import admin
 from django.urls import include, re_path
 
 api_urls = [
+    re_path(r'^todos/', include('todos.urls')),
     re_path(r'^users/', include('users.urls')),
 ]
 
