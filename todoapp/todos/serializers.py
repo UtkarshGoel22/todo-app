@@ -1,5 +1,6 @@
 from collections import OrderedDict
 
+from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework import serializers
 
@@ -18,7 +19,7 @@ class BaseTodoSerializer(serializers.ModelSerializer):
         model = todo_models.Todo
         fields = ('name', 'done', 'date_created')
         extra_kwargs = {'name': {'read_only': True}}
-        
+
 
 class CreateTodoSerializer(BaseTodoSerializer):
     """
@@ -62,3 +63,55 @@ class UpdateTodoSerializer(BaseTodoSerializer):
     class Meta(BaseTodoSerializer.Meta):
         fields = BaseTodoSerializer.Meta.fields + ('todo', 'date_completed')
         extra_kwargs = {**BaseTodoSerializer.Meta.extra_kwargs, 'date_completed': {'write_only': True}}
+
+
+class CreatorSerializer(serializers.ModelSerializer):
+    """
+    Creator serializer for 'creator' field.
+    """
+
+    class Meta:
+        model = get_user_model()
+        fields = ('first_name', 'last_name', 'email')
+
+
+class TodoSerializer(serializers.ModelSerializer):
+    """
+    Todo Serializer.
+    """
+
+    status = serializers.SerializerMethodField()
+    created_at = serializers.SerializerMethodField()
+    creator = CreatorSerializer(source='user')
+
+    def get_status(self, obj):
+        """
+        Function to populate the status field.
+
+        Args:
+            obj (Todo): Todo model instance.
+
+        Returns:
+            str: Display value for status.
+        """
+
+        return todo_constants.DONE_STATUS if obj.done else todo_constants.TODO_STATUS
+
+    class Meta:
+        model = todo_models.Todo
+        fields = ('id', 'name', 'status', 'created_at', 'creator')
+
+
+    def get_created_at(self, obj):
+        """
+        Function to populate the created_at field.
+        Converts datetime object into "5:30 PM, 13 Dec, 2021" datetime string.
+
+        Args:
+            obj (Todo): Todo model instance.
+
+        Returns:
+            str: Display value for created_at.
+        """
+
+        return obj.date_created.strftime(todo_constants.DATE_TIME_FORMAT)

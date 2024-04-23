@@ -114,3 +114,99 @@ class LoginUserSerializer(rest_serializers.Serializer):
 
     class Meta:
         fields = ('email', 'password', 'auth_token')
+
+
+class UserSerializer(BaseUserSerializer):
+    """
+    Base serializer for user model.
+    """
+
+    class Meta(BaseUserSerializer.Meta):
+        fields = BaseUserSerializer.Meta.fields + ('id',)
+
+
+class UserPendingTodoSerializer(UserSerializer):
+    """
+    User pending todo serializer.
+    """
+
+    pending_count = rest_serializers.IntegerField()
+
+    class Meta(UserSerializer.Meta):
+        fields = UserSerializer.Meta.fields + ('pending_count',)
+
+
+class UserTodoStatsSerializer(UserPendingTodoSerializer):
+    """
+    User todo stats serializer.
+    """
+
+    completed_count = rest_serializers.IntegerField()
+
+    class Meta(UserPendingTodoSerializer.Meta):
+        fields = UserPendingTodoSerializer.Meta.fields + ('completed_count',)
+
+
+class UserWiseProjectSerializer(BaseUserSerializer):
+    """
+    User wise project stats serializer.
+    """
+
+    to_do_projects = rest_serializers.SerializerMethodField()
+    in_progress_projects = rest_serializers.SerializerMethodField()
+    completed_projects = rest_serializers.SerializerMethodField()
+
+    def _remove_none_from_list(self, project_names: list) -> list:
+        """
+        Method to remove None values from a list.
+
+        Args:
+            project_names (list): Project names.
+
+        Returns:
+            list: Project names whose value is not None.
+        """
+
+        return [project_name for project_name in project_names if project_name is not None]
+
+    def get_to_do_projects(self, obj) -> list:
+        """
+        Method to populate to_do_projects field.
+
+        Args:
+            obj (CustomUser): CustomUser model instance.
+
+        Returns:
+            list: Project names which are yet to be started.
+        """
+
+        return self._remove_none_from_list(obj['to_do_projects'])
+    
+    def get_in_progress_projects(self, obj) -> list:
+        """
+        Method to populate in_progress_projects field.
+
+        Args:
+            obj (CustomUser): CustomUser model instance.
+
+        Returns:
+            list: Project names which are in progress.
+        """
+
+        return self._remove_none_from_list(obj['in_progress_projects'])
+    
+    def get_completed_projects(self, obj) -> list:
+        """
+        Method to populate completed_projects field.
+
+        Args:
+            obj (CustomUser): CustomUser model instance.
+
+        Returns:
+            list: Project names which are completed.
+        """
+
+        return self._remove_none_from_list(obj['completed_projects'])
+
+    class Meta(BaseUserSerializer.Meta):
+        fields = BaseUserSerializer.Meta.fields + ('to_do_projects', 'in_progress_projects', 'completed_projects')
