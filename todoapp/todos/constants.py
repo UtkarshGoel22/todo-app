@@ -1,1 +1,7 @@
+DONE_STATUS = 'Done'
+TODO_STATUS = 'To Do'
+
+DATE_TIME_FORMAT = '%H:%M %p, %d %b, %Y'
+DATE_FORMAT = '%d-%m-%Y'
+
 NAME_MAX_LENGTH = 255

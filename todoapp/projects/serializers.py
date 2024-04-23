@@ -9,6 +9,7 @@ from projects import (
     constants as project_constants,
     models as project_models,
 )
+from todos import serializers as todo_serializers
 
 
 class ProjectMemberSerializer(rest_serializers.Serializer):
@@ -148,3 +149,85 @@ class ProjectMemberSerializer(rest_serializers.Serializer):
 
     class Meta:
         fields = ('user_ids',)
+
+
+class BaseProjectSerializer(rest_serializers.ModelSerializer):
+    """
+    Base Project Serializer
+    """
+
+    class Meta:
+        model = project_models.Project
+        fields = ('max_members',)
+
+
+class ProjectSerializer(BaseProjectSerializer):
+    """
+    Get all Projects serializer.
+    For all projects list with count of existing members.
+    """
+
+    status = rest_serializers.SerializerMethodField()
+    existing_member_count = rest_serializers.IntegerField()
+
+    def get_status(self, obj):
+        """
+        Get status of the project.
+
+        Args:
+            obj (Project): Project model instance
+
+        Returns:
+            str: Display value for the status field.
+        """
+
+        return obj.get_status_display()
+    
+    class Meta(BaseProjectSerializer.Meta):
+        fields = BaseProjectSerializer.Meta.fields + ('id', 'name', 'status', 'existing_member_count')
+
+
+class ProjectDetailSerializer(BaseProjectSerializer):
+    """
+    Project Detail Serializer.
+    """
+
+    project_name = rest_serializers.CharField(source='name')
+    done = rest_serializers.SerializerMethodField()
+
+    def get_done(self, obj: project_models.Project) -> str:
+        """
+        Function to populate done field.
+
+        Args:
+            obj (Project): Project Model instance.
+
+        Returns:
+            str: True if status is 2 i.e. completed else False.
+        """
+
+        return True if obj['status'] == project_models.Project.COMPLETED else False
+    
+    class Meta(BaseProjectSerializer.Meta):
+        fields = BaseProjectSerializer.Meta.fields + ('project_name', 'done')
+
+
+class ReportSerializer(todo_serializers.CreatorSerializer):
+    """
+    Report Serializer.
+    """
+
+    completed_count = rest_serializers.IntegerField()
+    pending_count = rest_serializers.IntegerField()
+
+    class Meta(todo_serializers.CreatorSerializer.Meta):
+        fields = todo_serializers.CreatorSerializer.Meta.fields + ('completed_count', 'pending_count')
+
+
+class ProjectWiseReportSerializer(rest_serializers.Serializer):
+    """
+    Project Wise Report Serializer.
+    """
+
+    project_title = rest_serializers.CharField(source='name')
+    report = ReportSerializer(many=True)
